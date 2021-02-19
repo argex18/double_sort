@@ -39,8 +39,8 @@ int get_strarray(const char* array_arg, char* strarrays[])
     int i;
     int dim = 50;
     char* arrays[MAX_NUMBER] = {
-        calloc(dim, sizeof(char)),
-        calloc(dim, sizeof(char))
+        (char*) calloc(dim, sizeof(char)),
+        (char*) calloc(dim, sizeof(char))
     };
     char* start = array_arg;
     char* end, *origin, *buffer;
@@ -64,15 +64,12 @@ int get_strarray(const char* array_arg, char* strarrays[])
                 number[i] = *start;
                 i++;
             }
-            number[i] = ':';
+            number[i] = ',';
+            number[i+1] = '\0';
 
             i = n_param;
             if(*end == ']') {
                 i = n_param - 1;
-            }
-
-            if( strlen(arrays[i]) == 0 ) {
-                origin = arrays[i];
             }
 
             if( strlen(arrays[i]) >= dim-5 ) {
@@ -84,12 +81,6 @@ int get_strarray(const char* array_arg, char* strarrays[])
             }
  
             arrays[i] = strcat( arrays[i], number );
-            do {
-                if( *(arrays[i]) == ':' ) {
-                    *(arrays[i]) = ',';
-                }
-            } while ( *(++arrays[i]) != '\0' || *(arrays[i] - 1) != ',' );
-            arrays[i] = origin;
 
             // fprintf(stdout, "%s\n", arrays[i]);
 
@@ -101,24 +92,20 @@ int get_strarray(const char* array_arg, char* strarrays[])
         array_arg++;
     }
 
-    fprintf(stdout, "[%s][%s]\n", arrays[0], arrays[1]);
-    fflush(stdout);
-
     // here a code for adding the \0 null character
     i = 0;
-    arrays[i] = origin;
     while(i<MAX_NUMBER) {
-        if( *(arrays[i]) == '\0' ) {
-            *(arrays[i] - 1) = '\0';
-            arrays[i] = origin;
-            i++;
-        } else {
-            *(++arrays[i]);
-        }
+        origin = arrays[i];
+        do {
+            if( *(origin) == '\0' ) {
+                *(origin - 1) = '\0';
+                i++;
+                break;
+            } else {
+                *(++origin);
+            }
+        } while (1);
     }
-
-    fprintf(stdout, "[%s][%s]\n", arrays[0], arrays[1]);
-    fflush(stdout);
 
     if(arrays != NULL)
     {
@@ -140,19 +127,74 @@ int* get_array(char* str)
 
 }
 int main() {
-    const char* args = "[12,23,35,48,50,11,12,20,30,40,50][13,15,28,32,44,22,55,91]";
-    char* array[MAX_NUMBER];
-    char read;
+    const char* args = "[12,42,35,48,50,11,12,20,30,40,50][13,15,28,32,44,22,55,91]";
+    char* array[MAX_NUMBER], *start;
+    int* arr_values[MAX_NUMBER], *value;
+    char read[10], *origin;
+    int buffer = 0;
 
     int flag = get_strarray(args, array);
+
     if(flag && array != NULL) {
+
         int i;
         fprintf(stdout, "Arrays:\n");
         for(i=0; i<MAX_NUMBER; i++) {
             fprintf(stdout, "[%s]\n", array[i]);
+            arr_values[i] = (int*) calloc( strlen(array[i]), sizeof(int) );
         }
-    } else {
-        fprintf(stdout, "unknown error while getting string arrays");
+        fprintf(stdout, "===============================");
+        printf("\n");
+
+        for(i=0; i<MAX_NUMBER; i++) {
+            start = array[i];
+            value = arr_values[i];
+            origin = read;
+
+            while(1) {
+                sscanf(start, "%c", origin); 
+                
+                if(*(origin) == ',' || *(origin) == '\0') {
+
+                    *(origin) = '\0';
+                    sscanf(read, "%d", value);
+                    
+                    while(origin != &read[0]) {
+                        *(--origin) = '\0';
+                    }
+
+                    if(*(start) != '\0') {
+                        *(++start);
+                        *(++value);
+                        continue;
+                    } else {
+                        break;
+                    }
+                }
+                *(++start);
+                *(++origin);
+            }
+        }
+        printf("\n");
+
+        int j;
+        fprintf(stdout, "Int Arrays:\n");
+        for(i=0; i<MAX_NUMBER; i++) {
+
+            j = 0;
+            printf("Array[%d]: ", i);
+            while( j < strlen(array[i]) ) {
+                printf("%d,", arr_values[i][j]);
+                j++;
+            }
+            printf("\n");
+            
+        }
+    } 
+    else 
+    {
+        fprintf(stdout, "Error: unknown error while getting string arrays");
     }
+
     return 0;
 }
