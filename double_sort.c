@@ -180,12 +180,17 @@ int main() {
         int j;
         fprintf(stdout, "Int Arrays:\n");
         for(i=0; i<MAX_NUMBER; i++) {
+            start = array[i];
 
-            j = 0;
             printf("Array[%d]: ", i);
-            while( j < strlen(array[i]) ) {
+            // data type dimensions on my 64-bit machine with this gcc version
+            // sizeof operates on the data type, not on the variable content
+            printf("%d;%d;%d: ", sizeof(char*), sizeof(int*), sizeof(double*)); // sizeof returns the dimension in byte
+
+            for(j=0; j < strlen(array[i]) && arr_values[i][j] != 0; j++) {
+
                 printf("%d,", arr_values[i][j]);
-                j++;
+
             }
             printf("\n");
             
