@@ -118,69 +118,56 @@ int get_strarray(const char* array_arg, char* strarrays[])
     }
     else
     {
-        strarrays = NULL;
+        *(strarrays) = NULL;
         return -1;
     }
 }
-int* get_array(char* str)
+void get_array(char* str, int* array)
 {
+    char buffer[10], *buff, *origin;
+    buff = buffer;
+    origin = &buffer[0];
 
+    while(1) {
+        if(*(str) == ',') {
+            *(array) = atoi(buffer);
+            buff = origin;
+            *(array++);
+            *(str++);
+            continue;
+        }
+        *(buff) = *(str);
+        *(buff++);
+        *(str++); 
+
+        if(*(str) == '\0') {
+            *(array) = atoi(buffer);
+            break;
+        }
+    }
 }
 int main() {
     const char* args = "[12,42,35,48,50,11,12,20,30,40,50][13,15,28,32,44,22,55,91]";
-    char* array[MAX_NUMBER], *start;
-    int* arr_values[MAX_NUMBER], *value;
-    char read[10], *origin;
-    int buffer = 0;
+    char* array[MAX_NUMBER];
+    int* arr_values[MAX_NUMBER];
 
     int flag = get_strarray(args, array);
 
-    if(flag && array != NULL) {
+    if(flag && *(array) != NULL) {
 
         int i;
         fprintf(stdout, "Arrays:\n");
         for(i=0; i<MAX_NUMBER; i++) {
             fprintf(stdout, "[%s]\n", array[i]);
             arr_values[i] = (int*) calloc( strlen(array[i]), sizeof(int) );
+            get_array(array[i], arr_values[i]);
         }
         fprintf(stdout, "===============================");
-        printf("\n");
-
-        for(i=0; i<MAX_NUMBER; i++) {
-            start = array[i];
-            value = arr_values[i];
-            origin = read;
-
-            while(1) {
-                sscanf(start, "%c", origin); 
-                
-                if(*(origin) == ',' || *(origin) == '\0') {
-
-                    *(origin) = '\0';
-                    sscanf(read, "%d", value);
-                    
-                    while(origin != &read[0]) {
-                        *(--origin) = '\0';
-                    }
-
-                    if(*(start) != '\0') {
-                        *(++start);
-                        *(++value);
-                        continue;
-                    } else {
-                        break;
-                    }
-                }
-                *(++start);
-                *(++origin);
-            }
-        }
         printf("\n");
 
         int j;
         fprintf(stdout, "Int Arrays:\n");
         for(i=0; i<MAX_NUMBER; i++) {
-            start = array[i];
 
             printf("Array[%d]: ", i);
             // data type dimensions on my 64-bit machine with this gcc version
